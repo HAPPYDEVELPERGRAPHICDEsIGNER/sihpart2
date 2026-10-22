@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% block title %}Overview{% endblock %}
+{% block heading %}Overview{% endblock %}
+
+{% block content %}
+<div class="pageintro">
+  <div>
+    <span class="eyebrow">Monitoring Center</span>
+    <h1>Good day, {{ me.username|replace('_',' ')|title }}</h1>
+    <p>Current application status and recent institutional activity.</p>
+  </div>
+  <a class="primary" href="{{ url_for('applications') }}#new-application">+ Register Application</a>
+</div>
+
+<div class="cards">
+  <article class="metric primary">
+    <span>Total Applications</span>
+    <b>{{ counts.values()|sum }}</b>
+    <small>Across visible institutions</small>
+    <i class="blue">&#10697;</i>
+  </article>
+  <article class="metric warning">
+    <span>Pending Review</span>
+    <b>{{ counts.get('Pending',0) }}</b>
+    <small>Awaiting officer action</small>
+    <i class="amber">&#9679;</i>
+  </article>
+  <article class="metric success">
+    <span>In Progress</span>
+    <b>{{ counts.get('In progress',0) }}</b>
+    <small>Moving through workflow</small>
+    <i class="green">&#10003;</i>
+  </article>
+  <article class="metric danger">
+    <span>Overdue</span>
+    <b>{{ overdue }}</b>
+    <small>Past stage due date</small>
+    <i class="red">&#9888;</i>
+  </article>
+</div>
+
+<div class="grid two">
+  <section class="panel">
+    <div class="panelhead">
+      <div>
+        <h2>Application Pipeline</h2>
+        <p>Live status breakdown</p>
+      </div>
+      <a href="{{ url_for('reports') }}">View Report</a>
+    </div>
+    <div class="chartbox">
+      <canvas id="statusChart" aria-label="Applications by status"></canvas>
+    </div>
+    <script type="application/json" id="chartData">{{ counts|tojson }}</script>
+  </section>
+
+  <section class="panel">
+    <div class="panelhead">
+      <div>
+        <h2>Recent Activity</h2>
+        <p>Latest recorded audit events</p>
+      </div>
+      {% if me.role in ['Auditor','System Administrator'] %}
+      <a href="{{ url_for('audit_page') }}">Audit Trail</a>
+      {% endif %}
+    </div>
+    {% for item in activity %}
+    <div class="activity">
+      <span class="activitydot"></span>
+      <div>
+        <b>{{ item.action|replace('_',' ')|title }}</b>
+        <p>{{ item.username or 'System' }} &middot; {{ item.record_type }} {{ item.record_id or '' }} &middot; {{ item.created_at[:16] }}</p>
+      </div>
+    </div>
+    {% else %}
+    <div class="empty">Activity will appear here as actions are recorded.</div>
+    {% endfor %}
+  </section>
+</div>
+
+<section class="panel">
+  <div class="panelhead">
+    <div>
+      <h2>Recent Applications</h2>
+      <p>Latest updates across your workspace</p>
+    </div>
+    <a href="{{ url_for('applications') }}">All Applications</a>
+  </div>
+  {% if rows %}
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Application</th>
+          <th>Institution</th>
+          <th>Type</th>
+          <th>Stage Due</th>
+          <th>Officer</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in rows %}
+        <tr>
+          <td>
+            <a class="rowtitle" href="{{ url_for('application_detail',aid=a.id) }}">{{ a.title }}</a>
+            <small>#HK-{{ '%04d'|format(a.id) }}</small>
+          </td>
+          <td>{{ a.institution_name }}</td>
+          <td>{{ a.app_type }}</td>
+          <td>{{ a.stage_due or '—' }}</td>
+          <td>{{ a.officer or 'Unassigned' }}</td>
+          <td><span class="badge {{ a.status|lower|replace(' ','-') }}">{{ a.status }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty">No applications yet. Start by registering one.</div>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const d = JSON.parse(document.querySelector('#chartData').textContent);
+  const palette = {
+    'Pending': '#F59E0B',
+    'In progress': '#0D9488',
+    'Completed': '#10B981',
+    'Returned': '#3B82F6',
+    'Rejected': '#EF4444'
+  };
+  new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(d),
+      datasets: [{
+        data: Object.values(d),
+        backgroundColor: Object.keys(d).map(x => palette[x] || '#94A3B8'),
+        borderWidth: 2,
+        borderColor: '#ffffff',
+        hoverOffset: 4
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      cutout: '72%',
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: {
+            usePointStyle: true,
+            boxWidth: 8,
+            padding: 16,
+            font: { family: 'Inter, sans-serif', size: 12 },
+            color: '#1E293B'
+          }
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}

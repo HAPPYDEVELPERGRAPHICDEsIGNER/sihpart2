@@ -1,0 +1,3 @@
+document.addEventListener('click',event=>{const item=event.target.closest('[data-confirm]');if(item&&!window.confirm(item.dataset.confirm))event.preventDefault()});
+document.addEventListener('change',event=>{if(event.target.name!=='application_id')return;const option=event.target.selectedOptions?.[0];const institution=document.querySelector('#analyzerInstitution');if(option?.dataset.institution&&institution)institution.value=option.dataset.institution});
+document.addEventListener('submit',event=>{const form=event.target;if(!form.reportValidity())return;const button=form.querySelector('button[type="submit"],button:not([type])');if(button&&!button.disabled){button.disabled=true;button.dataset.originalText=button.textContent;button.textContent='Processing…'}});

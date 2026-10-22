@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{% block title %}HKSO{% endblock %} · HKSO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static',filename='css/app.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static',filename='css/polish.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static',filename='css/ai.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static',filename='css/auth.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+{% if me %}
+<aside class="sidebar">
+  <a class="brand" href="{{ url_for('dashboard') }}">
+    <span class="brandmark">H</span>
+    <span>HKSO<small>Institutional compliance</small></span>
+  </a>
+  <nav>
+    <span class="navlabel">Workspace</span>
+    <a href="{{ url_for('dashboard') }}" {% if request.endpoint == 'dashboard' %}class="active"{% endif %}>Overview</a>
+    <a href="{{ url_for('applications') }}" {% if request.endpoint in ['applications', 'application_detail'] %}class="active"{% endif %}>Applications</a>
+    <a href="{{ url_for('evc') }}" {% if request.endpoint == 'evc' %}class="active"{% endif %}>EVC Visits</a>
+    <a href="{{ url_for('compliance_page') }}" {% if request.endpoint == 'compliance_page' %}class="active"{% endif %}>Compliance</a>
+    <a href="{{ url_for('documents') }}" {% if request.endpoint == 'documents' %}class="active"{% endif %}>Documents</a>
+    <a href="{{ url_for('alerts') }}" {% if request.endpoint == 'alerts' %}class="active"{% endif %}>Alerts</a>
+    <a href="{{ url_for('reports') }}" {% if request.endpoint == 'reports' %}class="active"{% endif %}>Reports</a>
+    
+    <span class="navlabel">AI Tools</span>
+    <a href="{{ url_for('ai_analyzer') }}" class="{% if request.endpoint == 'ai_analyzer' %}active {% endif %}subnav">Document Analyzer</a>
+    <a href="{{ url_for('ai_assistant') }}" class="{% if request.endpoint == 'ai_assistant' %}active {% endif %}subnav">AI Assistant</a>
+    <a href="{{ url_for('ai_delay') }}" class="{% if request.endpoint == 'ai_delay' %}active {% endif %}subnav">Delay Warning</a>
+    <a href="{{ url_for('ai_gaps') }}" class="{% if request.endpoint == 'ai_gaps' %}active {% endif %}subnav">Gap Detector</a>
+    <a href="{{ url_for('ai_reports') }}" class="{% if request.endpoint == 'ai_reports' %}active {% endif %}subnav">AI Reports</a>
+    <a href="{{ url_for('ai_renewals') }}" class="{% if request.endpoint == 'ai_renewals' %}active {% endif %}subnav">Renewal Assistant</a>
+    
+    {% if me.role == 'System Administrator' %}
+    <span class="navlabel">Administration</span>
+    <a href="{{ url_for('workflow_admin') }}" {% if request.endpoint == 'workflow_admin' %}class="active"{% endif %}>Workflows</a>
+    {% endif %}
+    {% if me.role in ['Auditor','System Administrator'] %}
+    <a href="{{ url_for('audit_page') }}" {% if request.endpoint == 'audit_page' %}class="active"{% endif %}>Audit Trail</a>
+    {% endif %}
+  </nav>
+  <div class="sidebarfoot">Workflow support only<br>Human officials retain all decisions.</div>
+</aside>
+<main class="main">
+  <header class="topbar">
+    <div>
+      <span class="eyebrow">AICTE Approval Workflow</span>
+      <strong>{% block heading %}Workspace{% endblock %}</strong>
+    </div>
+    <div class="account">
+      <span class="avatar">{{ me.username[:1]|upper }}</span>
+      <span>{{ me.username|replace('_',' ')|title }}<small>{{ me.role }}</small></span>
+      <form method="post" action="{{ url_for('logout') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="linkbtn">Sign out</button>
+      </form>
+    </div>
+  </header>
+  <section class="content">
+    {% for category,message in get_flashed_messages(with_categories=true) %}
+    <div class="flash {{ category }}">{{ message }}</div>
+    {% endfor %}
+    {% block content %}{% endblock %}
+  </section>
+  <footer>HKSO · Sample records and timelines are synthetic and illustrative. Decisions remain with authorized human officials.</footer>
+</main>
+{% else %}
+  {% for category,message in get_flashed_messages(with_categories=true) %}
+  <div class="flash {{ category }} loginflash">{{ message }}</div>
+  {% endfor %}
+  {% block anonymous %}{% endblock %}
+{% endif %}
+<script src="{{ url_for('static',filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

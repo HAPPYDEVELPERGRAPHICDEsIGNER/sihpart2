@@ -1,0 +1,11 @@
+/* Polish — HKSO premium light theme refinements */
+b, strong { font-weight: 600; }
+.alertmark { display: block; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.historyicon { display: block; flex: none; width: 28px; height: 28px; border-radius: 50%; }
+.badge { border-radius: var(--r-pill); }
+.metric i { border-radius: var(--r-md); }
+.brandmark { border-radius: var(--r-md); }
+.sidebar nav a { border-radius: var(--r-md); }
+.panel { box-shadow: var(--shadow-card); border-radius: var(--r-lg); }
+.primary, .secondary { box-shadow: 0 2px 6px rgba(13,148,136,.25); border-radius: var(--r-md); }
+.secondary { box-shadow: var(--shadow-xs); }
